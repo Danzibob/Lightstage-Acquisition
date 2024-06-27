@@ -2,3 +2,5 @@ build
 .vscode
 Images
 *.o
+*.zip
+export

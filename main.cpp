@@ -9,8 +9,9 @@
 #define TAB2 "    "
 #define TAB3 "      "
 
-#define EXPOSURE_TIME 45000.0
+#define EXPOSURE_TIME 44000.0
 #define DELTA_TIME 1000.0
+#define PTP_SYNC 1
 
 #define FILE_NAME "Images/image_"
 // https://support.thinklucid.com/knowledgebase/pixel-formats/
@@ -228,6 +229,16 @@ void sync_and_prep(Arena::ISystem *system, std::vector<Arena::IDevice *> devices
             "ExposureTime",
             EXPOSURE_TIME);
 
+        Arena::SetNodeValue<GenICam::gcstring>(
+            device->GetNodeMap(),
+            "GainAuto",
+            "Off");
+
+        Arena::SetNodeValue<double>(
+            device->GetNodeMap(),
+            "Gain",
+            12.0);
+
         std::cout << Arena::GetNodeValue<double>(device->GetNodeMap(), "ExposureTime") << "\n";
 
         // Enable trigger mode and set source to action
@@ -370,9 +381,11 @@ void sync_and_prep(Arena::ISystem *system, std::vector<Arena::IDevice *> devices
     //    'Master' and the rest are all 'Slaves'. During the negotiation phase,
     //    multiple devices may initially come up as Master so we will wait until
     //    the ptp negotiation completes.
-    std::cout << TAB1 << "Wait for devices to negotiate. This can take up to a minute.\n";
-    wait_for_ptp_sync(devices);
-    std::cout << TAB1 << "PTP Sync established\n";
+    if (PTP_SYNC) {
+        std::cout << TAB1 << "Wait for devices to negotiate. This can take up to a minute.\n";
+        wait_for_ptp_sync(devices);
+        std::cout << TAB1 << "PTP Sync established\n";
+    }
 }
 
 int main() {
