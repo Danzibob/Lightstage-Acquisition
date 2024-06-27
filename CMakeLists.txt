@@ -10,6 +10,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(ARENA_SDK_DEFAULT_PATH "C:/Program Files/LUCID Vision Labs/Arena SDK")
     set(ARENA_SDK_PATH ${ARENA_SDK_DEFAULT_PATH} CACHE PATH "Path to Arena SDK")
     set(GENICAM_LIB_PATH "${ARENA_SDK_PATH}/GenICam/library/CPP/lib/Win64_x64")
+	
+	# Specify the paths to the FFmpeg libraries
+    set(FFMPEG_PATH "C:/Program Files/ffmpeg") # Adjust this to your actual path
+    set(FFMPEG_LIB_PATH "${FFMPEG_PATH}/lib")
+    set(FFMPEG_INCLUDE_PATH "${FFMPEG_PATH}/include")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(ARENA_SDK_DEFAULT_PATH "/opt/ArenaSDK/ArenaSDK_Linux_x64")
     set(ARENA_SDK_PATH ${ARENA_SDK_DEFAULT_PATH} CACHE PATH "Path to Arena SDK")
@@ -27,9 +32,23 @@ include_directories(${ARENA_SDK_PATH}/include/Save)
 include_directories(${ARENA_SDK_PATH}/include/SaveC)
 include_directories(${GENICAM_INCLUDE_PATH})
 
+# Add FFmpeg include directories
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    include_directories(${FFMPEG_INCLUDE_PATH})
+	link_directories(${FFMPEG_LIB_PATH})
+endif()
+
 # Specify the link directories
 link_directories(${ARENA_SDK_PATH}/lib64)
 link_directories(${GENICAM_LIB_PATH})
+
+# Gather all library files in the specified directories
+file(GLOB ARENA_LIBS "${ARENA_SDK_PATH}/lib64/Arena/*.lib")
+file(GLOB GENICAM_LIBS "${GENICAM_LIB_PATH}/*.lib")
+
+# Ensure we found the libraries
+message(STATUS "Arena SDK Libraries: ${ARENA_LIBS}")
+message(STATUS "GenICam Libraries: ${GENICAM_LIBS}")
 
 # Set RPATH (linux only)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -45,14 +64,9 @@ add_executable(DomeApp main.cpp)
 
 # Link the libraries
 target_link_libraries(DomeApp
-    arena
-    save
-    savec
-    lucidlog
-    gentl
-    GCBase_gcc54_v3_3_LUCID
-    GenApi_gcc54_v3_3_LUCID
-    avformat
-    avcodec
-    avutil
+    ${ARENA_LIBS}
+    ${GENICAM_LIBS}
+    avformat.lib
+    avcodec.lib
+    avutil.lib
 )
